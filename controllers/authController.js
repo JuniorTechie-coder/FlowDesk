@@ -30,8 +30,11 @@ const authRegistration = async (req, res) => {
             email: finalRegistration.email
         });
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ error: 'A issue occured in Database!' });
+        console.error(error);
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'An account with this email already exists.' });
+        }
+        res.status(500).json({ error: 'A database error occurred.' });
     }
 }
 
@@ -67,7 +70,8 @@ const loginUser = async (req, res) => {
         const user = findUser.rows[0]; // store it in user variable after the password check
 
         //  password correct → generate token HERE
-        const jwtSecret = process.env.JWT_SECRET || 'anyrandomlongstring123456';
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) throw new Error('JWT_SECRET is not defined in environment');
         const token = jwt.sign(
             { user_id: user.user_id, // payload[0]
               email: user.email }, // payload[1]

@@ -15,7 +15,8 @@ const protect = async (req, res, next) => {
     }
 
     try {
-        const jwtSecret = process.env.JWT_SECRET || 'anyrandomlongstring123456';
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) throw new Error('JWT_SECRET is not defined in environment');
         const decoded = jwt.verify(token, jwtSecret);//verify token 
 
         //attach user info to request and call next:

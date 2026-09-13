@@ -30,7 +30,7 @@ const getworkspacesboards = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Somethis went wrong", error: error.message  });
+        res.status(500).json({ message: "Something went wrong", error: error.message  });
     }
 }
 
@@ -97,7 +97,7 @@ const addBoards = async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error.code === '23505') {
-            res.status(500).json({ error: 'board already existed!' });
+            res.status(409).json({ error: 'Board already exists!' });
         } else {
             res.status(500).json({ error: 'Server error' });
         }

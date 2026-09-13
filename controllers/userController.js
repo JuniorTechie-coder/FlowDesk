@@ -1,4 +1,5 @@
 const pool = require('../db');
+const bcrypt = require('bcrypt');
 
 
 //this is the logic to get all users
@@ -38,22 +39,25 @@ const insertUsers = async (req, res) => {
         if (!name || !email || !password) {
             return res.status(400).json({ error: "All fields are required!" });
         }
+        //Hash the password before storing
+        const hashedPassword = await bcrypt.hash(password, 10);
         //Send the user back if user is created successfully
         const newUsers = await pool.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) RETURNING *',
-            [name, email, password]
+            [name, email, hashedPassword]
         );
         //Extract newly created user from row array 
         const createdUser = newUsers.rows[0];
 
         res.status(201).json({
             name: createdUser.name,
-            email: createdUser.email,
-            password: createdUser.password
+            email: createdUser.email
         });
     } catch (error) {
         if (error.code === '23505') {
-            res.status(409).json({ error: 'email already existed!' });
+            return res.status(409).json({ error: 'Email already exists!' });
         }
+        console.error("Error inserting user:", error);
+        res.status(500).json({ error: 'A server error occurred.' });
     }
 }
 
@@ -93,12 +97,12 @@ const updateUsers = async (req, res) => {
 
         //validate no empty field(edg case)
         if (!name || !email || !password) {
-            return res.status(404).json({
+            return res.status(400).json({
                 message: 'Required field is empty!'
             });
         }
         //Hit the Database 
-        const userUpdate = await pool.query('Update users set name = $1, email = $2 WHERE id = $3 RETURNING *',
+        const userUpdate = await pool.query('UPDATE users SET name = $1, email = $2 WHERE user_id = $3 RETURNING *',
             [name, email, id]);
 
         //Checking if value already existed or not 
