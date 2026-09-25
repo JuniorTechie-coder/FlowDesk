@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE } from "../config";
 
 function Dashboard({ setIsLoggedIn }) {
     const [workspaces, setWorkspaces] = useState([]);
@@ -9,7 +10,7 @@ function Dashboard({ setIsLoggedIn }) {
         async function getWorkspaces() {
             const token = localStorage.getItem('token');
 
-            const response = await fetch('https://trello-backend-1dsq.onrender.com/api/workspaces', {
+            const response = await fetch(`${API_BASE}/workspaces`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -28,12 +29,12 @@ function Dashboard({ setIsLoggedIn }) {
         }
 
         getWorkspaces();
-    }, []);
+    }, [setIsLoggedIn]);
 
     return (
         <div>
             <h1>Dashboard</h1>
-            <button onClick={handleLogout}>Logout</button>
+            <button onClick={() => setIsLoggedIn(false)}>Logout</button>
 
             <h2>My Workspaces</h2>
 

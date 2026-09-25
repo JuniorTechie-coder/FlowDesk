@@ -1,62 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Workspace from "./pages/Workspace";
 import Board from "./pages/Board";
 import BoardDetail from "./pages/BoardDetail";
+import { useNavigation } from "./navigation-context";
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [authView, setAuthView] = useState("landing"); // "landing" | "login" | "register"
-    const [currentPath, setCurrentPath] = useState(window.location.pathname);
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        if (token) {
-            setIsLoggedIn(true);
-        }
-
-        const handlePopState = () => {
-            setCurrentPath(window.location.pathname);
-        };
-        window.addEventListener("popstate", handlePopState);
-        return () => window.removeEventListener("popstate", handlePopState);
-    }, []);
+    const { currentPath, navigateTo } = useNavigation();
+    const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("token"));
+    const [authView, setAuthView] = useState(() => {
+        if (currentPath === "/login") return "login";
+        if (currentPath === "/register") return "register";
+        return "landing";
+    });
 
     function handleLogout() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setIsLoggedIn(false);
         setAuthView("landing");
-        window.history.pushState({}, "", "/");
-        setCurrentPath("/");
+        navigateTo("/");
     }
 
-    function navigateTo(path) {
-        window.history.pushState({}, "", path);
-        setCurrentPath(path);
-    }
-
-    // Determine what to render
+    // Authenticated state
     if (isLoggedIn) {
         if (currentPath.startsWith("/board/")) {
-            return <BoardDetail />;
+            return <BoardDetail handleLogout={handleLogout} />;
         }
         if (currentPath.startsWith("/boards/")) {
-            return <Board />;
+            return <Board handleLogout={handleLogout} />;
         }
         if (currentPath === "/workspace" || currentPath === "/workspaces") {
             return <Workspace handleLogout={handleLogout} />;
         }
-        // If at root '/' and authView is landing, show Landing with Open Workspace button
+        // If at root '/' and explicitly wanting landing view
         if (authView === "landing" && currentPath === "/") {
             return (
                 <Landing
                     onOpenWorkspace={() => navigateTo("/workspace")}
-                    onOpenLogin={() => setAuthView("login")}
-                    onOpenRegister={() => setAuthView("register")}
+                    onOpenLogin={() => {
+                        setAuthView("login");
+                        navigateTo("/login");
+                    }}
+                    onOpenRegister={() => {
+                        setAuthView("register");
+                        navigateTo("/register");
+                    }}
                     isLoggedIn={true}
                 />
             );
@@ -65,7 +56,10 @@ function App() {
     }
 
     // Unauthenticated state
-    if (authView === "login") {
+    const isLoginView = authView === "login" || currentPath === "/login";
+    const isRegisterView = authView === "register" || currentPath === "/register";
+
+    if (isLoginView) {
         return (
             <Login
                 setIsLoggedIn={(val) => {
@@ -73,15 +67,29 @@ function App() {
                     setAuthView("landing");
                     navigateTo("/workspace");
                 }}
-                onSwitchToRegister={() => setAuthView("register")}
+                onSwitchToRegister={() => {
+                    setAuthView("register");
+                    navigateTo("/register");
+                }}
+                onBackToHome={() => {
+                    setAuthView("landing");
+                    navigateTo("/");
+                }}
             />
         );
     }
 
-    if (authView === "register") {
+    if (isRegisterView) {
         return (
             <Register
-                onSwitchToLogin={() => setAuthView("login")}
+                onSwitchToLogin={() => {
+                    setAuthView("login");
+                    navigateTo("/login");
+                }}
+                onBackToHome={() => {
+                    setAuthView("landing");
+                    navigateTo("/");
+                }}
             />
         );
     }
@@ -89,9 +97,18 @@ function App() {
     // Default unauthenticated view: Landing Page
     return (
         <Landing
-            onOpenWorkspace={() => setAuthView("login")}
-            onOpenLogin={() => setAuthView("login")}
-            onOpenRegister={() => setAuthView("register")}
+            onOpenWorkspace={() => {
+                setAuthView("login");
+                navigateTo("/login");
+            }}
+            onOpenLogin={() => {
+                setAuthView("login");
+                navigateTo("/login");
+            }}
+            onOpenRegister={() => {
+                setAuthView("register");
+                navigateTo("/register");
+            }}
             isLoggedIn={false}
         />
     );

@@ -1,6 +1,17 @@
 import { useState } from "react";
+import { API_BASE } from "../config";
+import {
+    Layers,
+    Mail,
+    Lock,
+    Eye,
+    EyeOff,
+    AlertCircle,
+    ArrowLeft,
+    Sparkles
+} from "lucide-react";
 
-function Login({ setIsLoggedIn, onSwitchToRegister }) {
+function Login({ setIsLoggedIn, onSwitchToRegister, onBackToHome }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +29,7 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
 
         try {
             setLoading(true);
-            const response = await fetch("https://trello-backend-1dsq.onrender.com/api/auth/login", {
+            const response = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -60,13 +71,14 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
         <div className="auth-page">
             <div className="auth-container">
                 {/* Brand Header */}
-                <div className="auth-brand">
-                    <div className="auth-brand-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="24" height="24" rx="5" fill="#0052cc" />
-                            <rect x="4" y="4" width="6.5" height="15" rx="1.5" fill="#ffffff" />
-                            <rect x="13.5" y="4" width="6.5" height="10" rx="1.5" fill="#ffffff" />
-                        </svg>
+                <div
+                    className="auth-brand"
+                    onClick={() => onBackToHome && onBackToHome()}
+                    style={{ cursor: "pointer" }}
+                    title="Back to Home"
+                >
+                    <div className="logo-icon-box">
+                        <Layers size={22} color="#fff" />
                     </div>
                     <span className="auth-brand-name">FlowDesk</span>
                 </div>
@@ -74,18 +86,14 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                 {/* Glassmorphic Auth Card */}
                 <div className="auth-card">
                     <div className="auth-header">
-                        <h2>Log in to FlowDesk</h2>
-                        <p>Welcome back! Enter your details to access your workspace.</p>
+                        <h2>Welcome back</h2>
+                        <p>Sign in to your FlowDesk account to access workspaces and boards.</p>
                     </div>
 
                     {/* Error Banner */}
                     {errorMessage && (
                         <div className="auth-alert auth-alert-error">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
+                            <AlertCircle size={18} className="alert-icon" />
                             <span>{errorMessage}</span>
                         </div>
                     )}
@@ -96,10 +104,7 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                             <label htmlFor="email">Email Address</label>
                             <div className="auth-input-wrapper">
                                 <span className="auth-input-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                        <polyline points="22,6 12,13 2,6"></polyline>
-                                    </svg>
+                                    <Mail size={16} />
                                 </span>
                                 <input
                                     id="email"
@@ -107,9 +112,10 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                                     className="auth-input"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="e.g. alex@example.com"
+                                    placeholder="alex@company.com"
                                     autoComplete="email"
                                     required
+                                    autoFocus
                                 />
                             </div>
                         </div>
@@ -119,10 +125,7 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                             <label htmlFor="password">Password</label>
                             <div className="auth-input-wrapper">
                                 <span className="auth-input-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
+                                    <Lock size={16} />
                                 </span>
                                 <input
                                     id="password"
@@ -141,17 +144,7 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                                     title={showPassword ? "Hide password" : "Show password"}
                                     tabIndex={-1}
                                 >
-                                    {showPassword ? (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                            <line x1="1" y1="1" x2="23" y2="23"></line>
-                                        </svg>
-                                    ) : (
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                            <circle cx="12" cy="12" r="3"></circle>
-                                        </svg>
-                                    )}
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
@@ -168,7 +161,7 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                                     <span>Signing in...</span>
                                 </>
                             ) : (
-                                "Log In"
+                                "Sign In"
                             )}
                         </button>
                     </form>
@@ -183,13 +176,27 @@ function Login({ setIsLoggedIn, onSwitchToRegister }) {
                             type="button"
                             onClick={() => onSwitchToRegister && onSwitchToRegister()}
                         >
-                            Sign up here
+                            Create one for free
                         </button>
                     </div>
+
+                    {onBackToHome && (
+                        <div style={{ textAlign: "center", marginTop: "14px" }}>
+                            <button
+                                type="button"
+                                className="ghost-btn sm"
+                                onClick={onBackToHome}
+                                style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)" }}
+                            >
+                                <ArrowLeft size={13} />
+                                <span>Back to Home</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="auth-footer-tagline">
-                    Simplify your workflow and collaborate with ease.
+                    Streamlined Task Management &amp; Team Lead Delegation
                 </div>
             </div>
         </div>
