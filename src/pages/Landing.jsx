@@ -9,13 +9,16 @@ import {
     Layout,
     Crown
 } from "lucide-react";
+import { useNavigation } from "../navigation-context";
 
 function Landing({ onOpenWorkspace, onOpenLogin, onOpenRegister, isLoggedIn }) {
+    const { navigateTo } = useNavigation();
+
     return (
         <div className="landing-body">
             {/* Header / Nav */}
             <header className="landing-nav">
-                <div className="landing-nav-brand" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/"); }}>
+                <div className="landing-nav-brand" onClick={(e) => { e.preventDefault(); navigateTo("/"); }}>
                     <div className="logo-icon-box">
                         <Layers size={20} color="#fff" />
                     </div>

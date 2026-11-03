@@ -10,17 +10,11 @@ import { useNavigation } from "./navigation-context";
 function App() {
     const { currentPath, navigateTo } = useNavigation();
     const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("token"));
-    const [authView, setAuthView] = useState(() => {
-        if (currentPath === "/login") return "login";
-        if (currentPath === "/register") return "register";
-        return "landing";
-    });
 
     function handleLogout() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setIsLoggedIn(false);
-        setAuthView("landing");
         navigateTo("/");
     }
 
@@ -35,17 +29,15 @@ function App() {
         if (currentPath === "/workspace" || currentPath === "/workspaces") {
             return <Workspace handleLogout={handleLogout} />;
         }
-        // If at root '/' and explicitly wanting landing view
-        if (authView === "landing" && currentPath === "/") {
+        // The URL is the source of truth for the current page.
+        if (currentPath === "/") {
             return (
                 <Landing
                     onOpenWorkspace={() => navigateTo("/workspace")}
                     onOpenLogin={() => {
-                        setAuthView("login");
                         navigateTo("/login");
                     }}
                     onOpenRegister={() => {
-                        setAuthView("register");
                         navigateTo("/register");
                     }}
                     isLoggedIn={true}
@@ -56,23 +48,20 @@ function App() {
     }
 
     // Unauthenticated state
-    const isLoginView = authView === "login" || currentPath === "/login";
-    const isRegisterView = authView === "register" || currentPath === "/register";
+    const isLoginView = currentPath === "/login";
+    const isRegisterView = currentPath === "/register";
 
     if (isLoginView) {
         return (
             <Login
                 setIsLoggedIn={(val) => {
                     setIsLoggedIn(val);
-                    setAuthView("landing");
                     navigateTo("/workspace");
                 }}
                 onSwitchToRegister={() => {
-                    setAuthView("register");
                     navigateTo("/register");
                 }}
                 onBackToHome={() => {
-                    setAuthView("landing");
                     navigateTo("/");
                 }}
             />
@@ -83,11 +72,9 @@ function App() {
         return (
             <Register
                 onSwitchToLogin={() => {
-                    setAuthView("login");
                     navigateTo("/login");
                 }}
                 onBackToHome={() => {
-                    setAuthView("landing");
                     navigateTo("/");
                 }}
             />
@@ -98,15 +85,12 @@ function App() {
     return (
         <Landing
             onOpenWorkspace={() => {
-                setAuthView("login");
                 navigateTo("/login");
             }}
             onOpenLogin={() => {
-                setAuthView("login");
                 navigateTo("/login");
             }}
             onOpenRegister={() => {
-                setAuthView("register");
                 navigateTo("/register");
             }}
             isLoggedIn={false}

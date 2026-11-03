@@ -1,35 +1,33 @@
-import { createContext, useContext, useState, useEffect } from "react";
 
-const NavigationContext = createContext({
-    currentPath: "/",
-    navigateTo: () => {},
-});
+import { createContext, useContext } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+const NavigationContext = createContext(null);
 
 export function NavigationProvider({ children }) {
-    const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const handlePopState = () => {
-            setCurrentPath(window.location.pathname);
-        };
-        window.addEventListener("popstate", handlePopState);
-        return () => window.removeEventListener("popstate", handlePopState);
-    }, []);
+  const value = {
+    currentPath: location.pathname,
+    navigateTo: (path, options) => navigate(path, options),
+  };
 
-    const navigateTo = (path) => {
-        if (window.location.pathname !== path) {
-            window.history.pushState({}, "", path);
-            setCurrentPath(path);
-        }
-    };
-
-    return (
-        <NavigationContext.Provider value={{ currentPath, navigateTo }}>
-            {children}
-        </NavigationContext.Provider>
-    );
+  return (
+    <NavigationContext.Provider value={value}>
+      {children}
+    </NavigationContext.Provider>
+  );
 }
 
 export function useNavigation() {
-    return useContext(NavigationContext);
+  const context = useContext(NavigationContext);
+
+  if (!context) {
+    throw new Error(
+      "useNavigation must be used inside NavigationProvider"
+    );
+  }
+
+  return context;
 }
