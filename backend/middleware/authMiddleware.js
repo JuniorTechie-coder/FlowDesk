@@ -3,11 +3,19 @@ const jwt = require('jsonwebtoken');
 //Logic to protect our routes(only logged in users can actually hit api)
 const protect = async (req, res, next) => {
 
-    //extract token from request(header)
-    const authHeader = req.headers.authorization;
+    // First, check for the JWT in the HttpOnly cookie
+const cookieToken = req.cookies?.token;
 
-    //If authHeader exists, run split(). Otherwise, give me undefined.
-    const token = authHeader?.split(' ')[1]; //split(' ') breaks it into ["Bearer", "eyJhbGci..."] — [1] gets the second part.
+// Temporarily support the existing Bearer-token approach
+const authHeader = req.headers.authorization;
+
+const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : null;
+
+// Prefer cookie authentication, with Bearer fallback
+const token = cookieToken || bearerToken;
+
 
     //if no token
     if (!token) {

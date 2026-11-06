@@ -73,11 +73,21 @@ const loginUser = async (req, res) => {
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) throw new Error('JWT_SECRET is not defined in environment');
         const token = jwt.sign(
-            { user_id: user.user_id, // payload[0]
-              email: user.email }, // payload[1]
+            {
+                 user_id: user.user_id, // payload[0]
+                 email: user.email
+            }, // payload[1]
             jwtSecret,//secret key for signing the token
             { expiresIn: '7d' }
         );
+
+        res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.COOKIE_SAME_SITE || 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/'
+});
         
         //Login successful 
         res.status(200).json({
@@ -94,4 +104,46 @@ const loginUser = async (req, res) => {
     }
 };
 
-module.exports = { authRegistration, loginUser };
+// Get currently authenticated user
+const getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+
+        const result = await pool.query(
+            'SELECT user_id, name, email FROM users WHERE user_id = $1',
+            [userId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                error: 'User not found!'
+            });
+        }
+
+        res.status(200).json({
+            user: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: 'An error occurred while fetching user!'
+        });
+    }
+};
+
+// Logout user by clearing the authentication cookie
+const logoutUser = (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.COOKIE_SAME_SITE || 'lax',
+        path: '/'
+    });
+
+    return res.status(200).json({
+        message: 'Logout successful!'
+    });
+};
+
+module.exports = { authRegistration, loginUser, getCurrentUser, logoutUser };

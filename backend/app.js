@@ -8,12 +8,14 @@ const boardsRoute = require('./routes/boards');
 const listsRoute = require('./routes/lists');
 const cardsRoute = require('./routes/cards');
 const authRoute = require('./routes/auth');
+const cookieParser = require('cookie-parser');
 
 
 const app = express();
 
 //MiddleWare
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 
 

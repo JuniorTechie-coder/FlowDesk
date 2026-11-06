@@ -11,7 +11,7 @@ import {
     Sparkles
 } from "lucide-react";
 
-function Login({ setIsLoggedIn, onSwitchToRegister, onBackToHome }) {
+function Login({ onLogin, onSwitchToRegister, onBackToHome }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -28,43 +28,20 @@ function Login({ setIsLoggedIn, onSwitchToRegister, onBackToHome }) {
         }
 
         try {
-            setLoading(true);
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: email.trim(),
-                    password: password,
-                }),
-            });
+    setLoading(true);
 
-            const data = await response.json();
+    // Delegate authentication to AuthContext through App
+    await onLogin(email.trim(), password);
 
-            if (response.ok) {
-                // Save JWT and user metadata
-                localStorage.setItem("token", data.token);
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify({
-                        user_id: data.user_id,
-                        name: data.name,
-                        email: data.email,
-                    })
-                );
+} catch (error) {
+    console.error("Login request error:", error);
 
-                // Update application state
-                setIsLoggedIn(true);
-            } else {
-                setErrorMessage(data.error || "Login failed. Please verify your credentials.");
-            }
-        } catch (error) {
-            console.error("Login request error:", error);
-            setErrorMessage("Unable to connect to server. Please check your backend.");
-        } finally {
-            setLoading(false);
-        }
+    setErrorMessage(
+        error.message || "Unable to connect to server. Please try again."
+    );
+    }finally {
+    setLoading(false);
+      }
     }
 
     return (

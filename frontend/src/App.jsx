@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Landing from "./pages/Landing";
@@ -10,23 +10,39 @@ import Board from "./pages/Board";
 import BoardDetail from "./pages/BoardDetail";
 
 import { useNavigation } from "./navigation-context";
+import { useAuth } from "./context/AuthContext";
 
-function ProtectedRoute({ isLoggedIn, children }) {
-    return isLoggedIn ? children : <Navigate to="/login" replace />;
+function ProtectedRoute({ isAuthenticated, loading, children }) {
+    if (loading) {
+        return <div>Checking your session...</div>;
+    }
+
+    return isAuthenticated
+        ? children
+        : <Navigate to="/login" replace />;
 }
 
 function App() {
     const { navigateTo } = useNavigation();
 
-    const [isLoggedIn, setIsLoggedIn] = useState(
-        () => !!localStorage.getItem("token")
-    );
+    const {
+        isAuthenticated,
+        loading,
+        login,
+        logout
+    } = useAuth();
 
-    function handleLogout() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setIsLoggedIn(false);
-        navigateTo("/");
+    async function handleLogout() {
+        try {
+            await logout();
+            navigateTo("/");
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    }
+
+    if (loading) {
+        return <div>Loading FlowDesk...</div>;
     }
 
     return (
@@ -36,11 +52,13 @@ function App() {
                 element={
                     <Landing
                         onOpenWorkspace={() =>
-                            navigateTo(isLoggedIn ? "/workspace" : "/login")
+                            navigateTo(
+                                isAuthenticated ? "/workspace" : "/login"
+                            )
                         }
                         onOpenLogin={() => navigateTo("/login")}
                         onOpenRegister={() => navigateTo("/register")}
-                        isLoggedIn={isLoggedIn}
+                        isLoggedIn={isAuthenticated}
                     />
                 }
             />
@@ -48,13 +66,13 @@ function App() {
             <Route
                 path="/login"
                 element={
-                    isLoggedIn ? (
+                    isAuthenticated ? (
                         <Navigate to="/workspace" replace />
                     ) : (
                         <Login
-                            setIsLoggedIn={(value) => {
-                                setIsLoggedIn(value);
-                                if (value) navigateTo("/workspace");
+                            onLogin={async (email, password) => {
+                                await login(email, password);
+                                navigateTo("/workspace");
                             }}
                             onSwitchToRegister={() =>
                                 navigateTo("/register")
@@ -68,11 +86,13 @@ function App() {
             <Route
                 path="/register"
                 element={
-                    isLoggedIn ? (
+                    isAuthenticated ? (
                         <Navigate to="/workspace" replace />
                     ) : (
                         <Register
-                            onSwitchToLogin={() => navigateTo("/login")}
+                            onSwitchToLogin={() =>
+                                navigateTo("/login")
+                            }
                             onBackToHome={() => navigateTo("/")}
                         />
                     )
@@ -82,7 +102,10 @@ function App() {
             <Route
                 path="/workspace"
                 element={
-                    <ProtectedRoute isLoggedIn={isLoggedIn}>
+                    <ProtectedRoute
+                        isAuthenticated={isAuthenticated}
+                        loading={loading}
+                    >
                         <Workspace handleLogout={handleLogout} />
                     </ProtectedRoute>
                 }
@@ -96,7 +119,10 @@ function App() {
             <Route
                 path="/boards/:workspaceId"
                 element={
-                    <ProtectedRoute isLoggedIn={isLoggedIn}>
+                    <ProtectedRoute
+                        isAuthenticated={isAuthenticated}
+                        loading={loading}
+                    >
                         <Board handleLogout={handleLogout} />
                     </ProtectedRoute>
                 }
@@ -105,7 +131,10 @@ function App() {
             <Route
                 path="/board/:boardId"
                 element={
-                    <ProtectedRoute isLoggedIn={isLoggedIn}>
+                    <ProtectedRoute
+                        isAuthenticated={isAuthenticated}
+                        loading={loading}
+                    >
                         <BoardDetail handleLogout={handleLogout} />
                     </ProtectedRoute>
                 }
