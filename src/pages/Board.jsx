@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { API_BASE } from "../config";
 import { useToast } from "../toast-context";
 import { useNavigation } from "../navigation-context";
+import { useParams } from "react-router-dom";
 import {
     Plus,
     ArrowLeft,
@@ -54,6 +55,7 @@ const THEME_PRESETS = [
 ];
 
 function Board() {
+     const { workspaceId } = useParams();
     const toast = useToast();
     const { navigateTo } = useNavigation();
     const [boards, setBoards] = useState([]);
@@ -68,8 +70,7 @@ function Board() {
     const [creating, setCreating] = useState(false);
     const [deletingBoardId, setDeletingBoardId] = useState(null);
 
-    // Extract workspace ID from URL: /boards/:id
-    const workspaceId = window.location.pathname.split("/")[2];
+   
 
     useEffect(() => {
         let cancelled = false;
@@ -108,13 +109,14 @@ function Board() {
                 if (!cancelled) setLoading(false);
             }
         }
-
         fetchWorkspaceAndBoards();
         return () => {
             cancelled = true;
         };
     }, [workspaceId]);
 
+
+    
     // Close modal on Escape
     useEffect(() => {
         const handleKeyDown = (e) => {

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { API_BASE } from "../config";
 import { useToast } from "../toast-context";
 import { useNavigation } from "../navigation-context";
+import { useParams } from "react-router-dom";
 import {
     Plus,
     Trash2,
@@ -39,6 +40,7 @@ function matchesFilter(card, filterAssignee, currentUser, searchQuery) {
 }
 
 function BoardDetail({ handleLogout }) {
+     const { boardId } = useParams();
     const toast = useToast();
     const { navigateTo } = useNavigation();
     const [lists, setLists] = useState([]);
@@ -114,7 +116,6 @@ function BoardDetail({ handleLogout }) {
     const [editingCardAssignee, setEditingCardAssignee] = useState("");
     const [updatingCard, setUpdatingCard] = useState(false);
 
-    const boardId = window.location.pathname.split("/")[2];
 
     // Theme sync
     useEffect(() => {
