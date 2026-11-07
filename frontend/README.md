@@ -1,4 +1,4 @@
-# Trello Frontend
+# FlowDesk Frontend
 
 Frontend for a Trello-inspired project management application built using React and Vite.
 
